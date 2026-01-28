@@ -27,20 +27,18 @@ import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity {
     private MediaPlayer mediaPlayer;
-    private ListView listViewTrack;
-    private List<String> trackList = new ArrayList<>();
+    private final List<String> trackList = new ArrayList<>();
     private String selectedTrack = "";
     private String currentPlayingTrack = "";
-    private ImageButton mus, mus_play, mus_pause;
     private TextView name_track;
     private TextView fullTime, currentTime;
-    private Handler handler = new Handler();
+    private final Handler handler = new Handler();
     private Runnable updateTimeRunnable;
     private SeekBar bar;
     private int currentTrackIndex = -1;
     private boolean isFirstLaunch = true;
 
-    @SuppressLint("MissingInflatedId")
+    @SuppressLint({"MissingInflatedId", "SetTextI18n"})
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -51,9 +49,9 @@ public class MainActivity extends AppCompatActivity {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
-        mus = findViewById(R.id.imageButton_music);
-        mus_play = findViewById(R.id.imageButton_music_play);
-        mus_pause = findViewById(R.id.imageButton_pause);
+        ImageButton mus = findViewById(R.id.imageButton_music);
+        ImageButton mus_play = findViewById(R.id.imageButton_music_play);
+        ImageButton mus_pause = findViewById(R.id.imageButton_pause);
         name_track = findViewById(R.id.textView_name_track);
         name_track.setSelected(true);
         fullTime = findViewById(R.id.editTextTime_fullTime);
@@ -115,7 +113,7 @@ public class MainActivity extends AppCompatActivity {
             }
         };
 
-        listViewTrack = findViewById(R.id.listView_tracks);
+        ListView listViewTrack = findViewById(R.id.listView_tracks);
         loadTrackList();
 
         ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, trackList);
@@ -206,6 +204,7 @@ public class MainActivity extends AppCompatActivity {
     private void loadTrackList() {
         try {
             String[] files = getAssets().list("audio");
+            assert files != null;
             for (String file : files) {
                 if(file.endsWith(".mp3")) {
                     trackList.add(file);
@@ -281,19 +280,14 @@ public class MainActivity extends AppCompatActivity {
         if (mediaPlayer != null && mediaPlayer.isPlaying()) {
             int currentPos = mediaPlayer.getCurrentPosition();
             int duration = mediaPlayer.getDuration();
+            if (currentPos > duration) {
+                currentPos = duration;
+            }
 
             currentTime.setText(formatTime(currentPos));
             bar.setProgress(currentPos);
 
-            if (currentPos < duration) {
-                handler.postDelayed(updateTimeRunnable, 1000);
-            } else {
-                currentTime.setText(formatTime(duration));
-                bar.setProgress(duration);
-
-                mediaPlayer.pause();
-                handler.removeCallbacks(updateTimeRunnable);
-            }
+            handler.postDelayed(updateTimeRunnable, 1000);
         }
     }
 
