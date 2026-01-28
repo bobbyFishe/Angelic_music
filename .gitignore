@@ -1,0 +1,22 @@
+# Android Studio
+*.iml
+.gradle
+/local.properties
+/.idea/
+.DS_Store
+/build
+/captures
+.externalNativeBuild
+.cxx/
+
+# Audio files - IGNORE THESE
+app/src/main/assets/audio/*.mp3
+app/src/main/assets/audio/*.wav
+app/src/main/assets/audio/*.ogg
+app/src/main/assets/audio/*.m4a
+
+# Video files - IGNORE THESE TOO
+app/src/main/assets/videos/*.mp4
+app/src/main/assets/videos/*.avi
+app/src/main/assets/videos/*.mov
+app/build/

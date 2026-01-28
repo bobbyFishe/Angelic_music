@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">Angelic_music</string>
+    <string name="button_music">button_music</string>
+    <string name="button_play">Воспроизвести</string>
+    <string name="button_stop">Остановить</string>
+    <string name="button_pause">Пауза</string>
+    <string name="time_now"></string>
+    <string name="time_full"></string>
+    <string name="track_name"></string>
+</resources>
