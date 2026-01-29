@@ -6,5 +6,8 @@
     <string name="button_pause">Пауза</string>
     <string name="time_now"></string>
     <string name="time_full"></string>
-    <string name="track_name"></string>
+    <string name="track_info"></string>
+    <string name="track_name" />
+    <string name="track_prev">предыдущий</string>
+    <string name="track_next" >следующий</string>
 </resources>

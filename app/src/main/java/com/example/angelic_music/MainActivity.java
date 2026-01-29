@@ -5,6 +5,9 @@ import android.annotation.SuppressLint;
 import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Looper;
+import android.view.Gravity;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -35,8 +38,7 @@ public class MainActivity extends AppCompatActivity {
     private final Handler handler = new Handler();
     private Runnable updateTimeRunnable;
     private SeekBar bar;
-    private int currentTrackIndex = -1;
-    private boolean isFirstLaunch = true;
+    private int currentTrackIndex = 0;
 
     @SuppressLint({"MissingInflatedId", "SetTextI18n"})
     @Override
@@ -51,7 +53,9 @@ public class MainActivity extends AppCompatActivity {
         });
         ImageButton mus = findViewById(R.id.imageButton_music);
         ImageButton mus_play = findViewById(R.id.imageButton_music_play);
-        ImageButton mus_pause = findViewById(R.id.imageButton_pause);
+        //ImageButton mus_pause = findViewById(R.id.imageButton_pause);
+        ImageButton track_prev = findViewById(R.id.imageButton_trackPrev);
+        ImageButton track_next = findViewById(R.id.imageButton_track_next);
         name_track = findViewById(R.id.textView_name_track);
         name_track.setSelected(true);
         fullTime = findViewById(R.id.editTextTime_fullTime);
@@ -59,6 +63,14 @@ public class MainActivity extends AppCompatActivity {
         bar = findViewById(R.id.seekBar2);
         mediaPlayer = new MediaPlayer();
         bar.setEnabled(false);
+
+        track_next.setOnClickListener(view -> {
+            playNextTrack();
+        });
+
+        track_prev.setOnClickListener(view -> {
+            playPrevTrack();
+        });
 
         bar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
@@ -86,10 +98,6 @@ public class MainActivity extends AppCompatActivity {
                 if(newPosition > duration - 1000) {
                     playNextTrack();
                 } else {
-                    if (newPosition > duration) {
-                        newPosition = duration;
-                        seekBar.setProgress(newPosition);
-                    }
                     try {
                         mediaPlayer.seekTo(newPosition);
                         currentTime.setText(formatTime(newPosition));
@@ -142,6 +150,7 @@ public class MainActivity extends AppCompatActivity {
                 }
                 playMusic(selectedTrack);
                 showQuickToast("Играет: " + selectedTrack);
+                mus_play.setImageResource(android.R.drawable.ic_media_pause);
             }
         });
 
@@ -157,27 +166,31 @@ public class MainActivity extends AppCompatActivity {
                 bar.setMax(0);
                 bar.setEnabled(false);
                 showQuickToast("Остановил");
+                mus_play.setImageResource(android.R.drawable.ic_media_play);
             }
         });
 
-        mus_pause.setOnClickListener(view -> {
-            if(mediaPlayer.isPlaying()) {
-                mediaPlayer.pause();
-                handler.removeCallbacks(updateTimeRunnable);
-                showQuickToast("Пауза");
-            }
-        });
+//        mus_pause.setOnClickListener(view -> {
+//            if(mediaPlayer.isPlaying()) {
+//                mediaPlayer.pause();
+//                handler.removeCallbacks(updateTimeRunnable);
+//                showQuickToast("Пауза");
+//            }
+//        });
 
         mus_play.setOnClickListener(view -> {
             if(!mediaPlayer.isPlaying()) {
+                mus_play.setImageResource(android.R.drawable.ic_media_pause);
                 if(!currentPlayingTrack.isEmpty()) {
                     mediaPlayer.start();
                     updateCurrentTime();
                     showQuickToast("Продолжил");
                 } else {
                     try {
+                        String mes = "";
                         if (selectedTrack.isEmpty()) {
                             selectedTrack = trackList.get(0);
+                            mes = "Запустил " + selectedTrack;
                         }
                         String path = "audio/" + selectedTrack;
                         mediaPlayer.setDataSource(getAssets().openFd(path));
@@ -189,13 +202,16 @@ public class MainActivity extends AppCompatActivity {
                         bar.setMax(mediaPlayer.getDuration());
                         currentTime.setText("00:00");
                         handler.post(updateTimeRunnable);
-                        showQuickToast("Перезапустил");
+                        showQuickToast(mes.isEmpty() ? "Перезапустил" : mes);
                     } catch (IOException e) {
                         Toast.makeText(this, "Ошибка загрузки: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                     }
-
                 }
-                isFirstLaunch = false;
+            } else {
+                mediaPlayer.pause();
+                handler.removeCallbacks(updateTimeRunnable);
+                showQuickToast("Пауза");
+                mus_play.setImageResource(android.R.drawable.ic_media_play);
             }
         });
 
@@ -241,7 +257,6 @@ public class MainActivity extends AppCompatActivity {
             bar.setMax(duration);
             bar.setProgress(0);
             handler.post(updateTimeRunnable);
-            isFirstLaunch = false;
         } catch (IOException e) {
             showQuickToast("Ошибка загрузки: " + trackName);
         } catch (Exception e) {
@@ -262,10 +277,22 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void showQuickToast(String message) {
-        Toast toast = Toast.makeText(this, message, Toast.LENGTH_LONG);
+        if (message == null || message.trim().isEmpty()) {
+            return;
+        }
+        LayoutInflater inflater = getLayoutInflater();
+        View layout = inflater.inflate(R.layout.custom_toast, null);
+
+        TextView text = layout.findViewById(R.id.toast_message);
+        text.setText(message);
+
+        Toast toast = new Toast(getApplicationContext());
+        toast.setView(layout);
+        toast.setDuration(Toast.LENGTH_SHORT);
+        toast.setGravity(Gravity.BOTTOM | Gravity.CENTER_HORIZONTAL, 0, 120);
         toast.show();
 
-        new Handler().postDelayed(toast::cancel, 800);
+        new Handler(Looper.getMainLooper()).postDelayed(toast::cancel, 800);
     }
 
     private String formatTime(int milliseconds) {
@@ -292,7 +319,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void playNextTrack() {
-        if (trackList.isEmpty()) return;
+        if (trackList.isEmpty()){
+            return;
+        }
         currentTrackIndex++;
         if (currentTrackIndex >= trackList.size()) {
             currentTrackIndex = 0;
@@ -302,5 +331,17 @@ public class MainActivity extends AppCompatActivity {
 
         playMusic(nextTrack);
         showQuickToast("Следующий трек: " + nextTrack);
+    }
+
+    private void playPrevTrack() {
+        if(trackList.isEmpty()) return;
+        currentTrackIndex--;
+        if(currentTrackIndex < 0) {
+            currentTrackIndex = trackList.size() - 1;
+        }
+        String nextTrack = trackList.get(currentTrackIndex);
+        selectedTrack = nextTrack;
+        playMusic(nextTrack);
+        showQuickToast("Предыдущий трек: " + nextTrack);
     }
 }

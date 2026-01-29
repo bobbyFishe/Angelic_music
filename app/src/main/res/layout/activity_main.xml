@@ -19,7 +19,7 @@
         android:divider="@android:color/darker_gray"
         android:dividerHeight="1dp"
         android:scrollbars="vertical"
-        app:layout_constraintBottom_toTopOf="@+id/track_name"
+        app:layout_constraintBottom_toTopOf="@+id/track_info"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
@@ -40,6 +40,18 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/seekBar2">
+
+
+        <ImageButton
+            android:id="@+id/imageButton_trackPrev"
+            android:layout_width="60dp"
+            android:layout_height="60dp"
+            android:layout_margin="8dp"
+            android:background="@drawable/button_rounded"
+            android:contentDescription="@string/track_prev"
+            android:scaleType="centerInside"
+            app:srcCompat="@android:drawable/ic_media_previous"
+            app:tint="#FFFFFF" />
 
         <ImageButton
             android:id="@+id/imageButton_music_play"
@@ -63,16 +75,28 @@
             app:srcCompat="@android:drawable/ic_menu_close_clear_cancel"
             app:tint="#FFFFFF" />
 
+<!--        <ImageButton-->
+<!--            android:id="@+id/imageButton_pause"-->
+<!--            android:layout_width="60dp"-->
+<!--            android:layout_height="60dp"-->
+<!--            android:layout_margin="8dp"-->
+<!--            android:background="@drawable/button_rounded"-->
+<!--            android:contentDescription="@string/button_pause"-->
+<!--            android:scaleType="centerInside"-->
+<!--            app:srcCompat="@android:drawable/ic_media_pause"-->
+<!--            app:tint="#FFFFFF" />-->
+
         <ImageButton
-            android:id="@+id/imageButton_pause"
+            android:id="@+id/imageButton_track_next"
             android:layout_width="60dp"
             android:layout_height="60dp"
             android:layout_margin="8dp"
+            android:contentDescription="@string/track_next"
             android:background="@drawable/button_rounded"
-            android:contentDescription="@string/button_pause"
             android:scaleType="centerInside"
-            app:srcCompat="@android:drawable/ic_media_pause"
-            app:tint="#FFFFFF" />
+            app:tint="#FFFFFF"
+            app:srcCompat="@android:drawable/ic_media_next" />
+
     </LinearLayout>
 
     <SeekBar
@@ -85,10 +109,10 @@
         app:layout_constraintBottom_toTopOf="@+id/linearLayout"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/track_name" />
+        app:layout_constraintTop_toBottomOf="@+id/track_info" />
 
     <androidx.constraintlayout.widget.ConstraintLayout
-        android:id="@+id/track_name"
+        android:id="@+id/track_info"
         android:layout_width="0dp"
         android:layout_height="88dp"
         android:layout_marginStart="16dp"
@@ -111,7 +135,7 @@
             android:focusableInTouchMode="true"
             android:scrollHorizontally="true"
             android:singleLine="true"
-            android:text="@string/track_name"
+            android:text="@string/track_info"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
