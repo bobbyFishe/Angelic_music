@@ -18,6 +18,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
@@ -52,8 +53,8 @@ public class MainActivity extends AppCompatActivity {
             return insets;
         });
         ImageButton mus = findViewById(R.id.imageButton_music);
-        ImageButton mus_play = findViewById(R.id.imageButton_music_play);
-        //ImageButton mus_pause = findViewById(R.id.imageButton_pause);
+        ImageButton mus_play = findViewById(R.id.imageButton_play_pause);
+        ImageButton close = findViewById(R.id.imageButton_closeApp);
         ImageButton track_prev = findViewById(R.id.imageButton_trackPrev);
         ImageButton track_next = findViewById(R.id.imageButton_track_next);
         name_track = findViewById(R.id.textView_name_track);
@@ -70,6 +71,10 @@ public class MainActivity extends AppCompatActivity {
 
         track_prev.setOnClickListener(view -> {
             playPrevTrack();
+        });
+
+        close.setOnClickListener(view -> {
+            showFirstDialog();
         });
 
         bar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
@@ -343,5 +348,19 @@ public class MainActivity extends AppCompatActivity {
         selectedTrack = nextTrack;
         playMusic(nextTrack);
         showQuickToast("Предыдущий трек: " + nextTrack);
+    }
+
+    private void showFirstDialog() {
+        new AlertDialog.Builder(MainActivity.this)
+                .setTitle("Подтверждение")
+                .setMessage("Хотите выйти?")
+                .setCancelable(false)
+                .setNegativeButton("Нет", (dialog, which) -> showQuickToast("Отмена"))
+                .setPositiveButton("Да", (dialog, which) -> {
+                    showQuickToast("Выхожу");
+                    finishAffinity();
+                    System.exit(0);
+                })
+                .show();
     }
 }
