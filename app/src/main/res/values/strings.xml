@@ -9,7 +9,10 @@
     <string name="track_info"></string>
     <string name="track_name" />
     <string name="track_prev">предыдущий</string>
-    <string name="track_next" >следующий</string>
+    <string name="track_next">следующий</string>
     <string name="name_track" />
     <string name="exit">exit</string>
+    <string name="appwidget_text">EXAMPLE</string>
+    <string name="add_widget">Add widget</string>
+    <string name="app_widget_description">This is an app widget description</string>
 </resources>
