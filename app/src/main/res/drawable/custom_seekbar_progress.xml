@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Фон (незаполненная часть) -->
+    <item android:id="@android:id/background">
+        <shape>
+            <solid android:color="#B99316" />           <!-- полупрозрачный серый -->
+            <corners android:radius="8dp" />
+        </shape>
+    </item>
+
+    <!-- Заполненная часть (прогресс) -->
+    <item android:id="@android:id/progress">
+        <clip>
+            <shape>
+                <solid android:color="#53896A" />         <!-- ваш акцентный цвет -->
+                <corners android:radius="8dp" />
+            </shape>
+        </clip>
+    </item>
+
+    <!-- Вторичный прогресс (опционально, буфер) -->
+    <item android:id="@android:id/secondaryProgress">
+        <clip>
+            <shape>
+                <solid android:color="#80FFFFFF" />     <!-- полупрозрачный белый -->
+                <corners android:radius="8dp" />
+            </shape>
+        </clip>
+    </item>
+
+</layer-list>

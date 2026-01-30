@@ -57,6 +57,9 @@ public class MainActivity extends AppCompatActivity {
         ImageButton close = findViewById(R.id.imageButton_closeApp);
         ImageButton track_prev = findViewById(R.id.imageButton_trackPrev);
         ImageButton track_next = findViewById(R.id.imageButton_track_next);
+        ListView listViewTrack = findViewById(R.id.listView_tracks);
+        listViewTrack.setVerticalScrollBarEnabled(true);
+        listViewTrack.setScrollbarFadingEnabled(false);
         name_track = findViewById(R.id.textView_name_track);
         name_track.setSelected(true);
         fullTime = findViewById(R.id.editTextTime_fullTime);
@@ -126,7 +129,6 @@ public class MainActivity extends AppCompatActivity {
             }
         };
 
-        ListView listViewTrack = findViewById(R.id.listView_tracks);
         loadTrackList();
 
         ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, trackList);
@@ -175,14 +177,6 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-//        mus_pause.setOnClickListener(view -> {
-//            if(mediaPlayer.isPlaying()) {
-//                mediaPlayer.pause();
-//                handler.removeCallbacks(updateTimeRunnable);
-//                showQuickToast("Пауза");
-//            }
-//        });
-
         mus_play.setOnClickListener(view -> {
             if(!mediaPlayer.isPlaying()) {
                 mus_play.setImageResource(android.R.drawable.ic_media_pause);
@@ -203,6 +197,7 @@ public class MainActivity extends AppCompatActivity {
                         mediaPlayer.start();
                         bar.setEnabled(true);
                         currentPlayingTrack = selectedTrack;
+                        name_track.setText(currentPlayingTrack);
                         fullTime.setText(formatTime(mediaPlayer.getDuration()));
                         bar.setMax(mediaPlayer.getDuration());
                         currentTime.setText("00:00");

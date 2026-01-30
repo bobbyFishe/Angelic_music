@@ -1,0 +1,25 @@
+<resources>
+    <dimen name="list_margin_horizontal">16dp</dimen>
+    <dimen name="list_margin_top">8dp</dimen>
+    <dimen name="list_margin_bottom">8dp</dimen>
+    <dimen name="max_list_height">600dp</dimen>
+    <dimen name="player_padding">8dp</dimen>
+    <dimen name="player_elevation">8dp</dimen>
+    <dimen name="button_size">60dp</dimen>
+    <dimen name="button_margin">16dp</dimen>
+    <dimen name="player_padding_vertical">12dp</dimen>
+    <dimen name="player_padding_horizontal">8dp</dimen>
+    <dimen name="player_button_size">56dp</dimen>
+    <dimen name="player_margin_horizontal">16dp</dimen>
+    <dimen name="player_margin_bottom">16dp</dimen>
+    <dimen name="seekbar_margin_horizontal">16dp</dimen>
+    <dimen name="seekbar_margin_bottom">16dp</dimen>
+    <dimen name="seekbar_max_height">48dp</dimen>
+    <dimen name="seekbar_min_height">32dp</dimen>
+    <dimen name="margin_horizontal">16dp</dimen>
+    <dimen name="track_name_margin_horizontal">24dp</dimen>
+    <dimen name="time_margin_start">24dp</dimen>
+    <dimen name="time_margin_end">24dp</dimen>
+    <dimen name="track_name_text_size">18sp</dimen>
+    <dimen name="time_text_size">16sp</dimen>
+</resources>
