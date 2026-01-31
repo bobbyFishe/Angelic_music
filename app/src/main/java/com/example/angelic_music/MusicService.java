@@ -11,8 +11,6 @@ import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.os.Build;
 import android.os.IBinder;
-import android.util.Log;
-import android.widget.RemoteViews;
 
 import androidx.core.app.NotificationCompat;
 
@@ -24,11 +22,10 @@ public class MusicService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
-        createNotificationChannel();  // теперь метод существует
+        createNotificationChannel();
         startForeground(NOTIFICATION_ID, createNotification("Плеер в фоне"));
     }
 
-    // Метод создания канала — вставь именно сюда
     private void createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             NotificationChannel channel = new NotificationChannel(
@@ -58,9 +55,19 @@ public class MusicService extends Service {
                 .setPriority(NotificationCompat.PRIORITY_LOW)
                 .setContentIntent(pendingIntent)
                 .setOngoing(true)
-                .setOnlyAlertOnce(true);                        // без лишних звуков
+                .setOnlyAlertOnce(true);
+        Intent closeInt = new Intent(this, MusicService.class);
+        closeInt.setAction("closeApp");
+        PendingIntent closePendingInt = PendingIntent.getService(this, 0, closeInt, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+        builder.addAction(
+                android.R.drawable.btn_dialog,
+                "Закрыть",
+                closePendingInt
+        );
 
-        androidx.media.app.NotificationCompat.MediaStyle mediaStyle = new androidx.media.app.NotificationCompat.MediaStyle();
+
+        androidx.media.app.NotificationCompat.MediaStyle mediaStyle = new androidx.media.app.NotificationCompat.MediaStyle()
+                .setShowActionsInCompactView(0);
         builder.setStyle(mediaStyle);
 
         return builder.build();
@@ -73,6 +80,16 @@ public class MusicService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+        if(intent != null && intent.getAction() != null) {
+            String action = intent.getAction();
+            if("closeApp".equals(action)) {
+                stopForeground(true);
+                stopSelf();
+                Intent broadcastIntent = new Intent("com.example.angelic_music.closeApp");
+                sendBroadcast(broadcastIntent);
+                return START_NOT_STICKY;
+            }
+        }
         String trackName = intent != null ? intent.getStringExtra("track_name") : null;
         startForeground(NOTIFICATION_ID, createNotification(trackName));
         return START_STICKY;
@@ -87,7 +104,7 @@ public class MusicService extends Service {
     @Override
     public void onTaskRemoved(Intent rootIntent) {
         super.onTaskRemoved(rootIntent);
-        stopForeground(true);  // убираем уведомление
-        stopSelf();           // останавливаем сервис
+        stopForeground(true);
+        stopSelf();
     }
 }

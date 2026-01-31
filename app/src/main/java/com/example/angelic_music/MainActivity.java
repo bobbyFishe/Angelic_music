@@ -3,7 +3,10 @@ package com.example.angelic_music;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.media.MediaPlayer;
 import android.os.Build;
@@ -48,8 +51,14 @@ public class MainActivity extends AppCompatActivity {
     private SeekBar bar;
     private int currentTrackIndex = 0;
     private static final int NOTIFICATION_PERMISSION_CODE = 101;
+    private BroadcastReceiver closeReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            finishAffinity();
+        }
+    };
 
-    @SuppressLint({"MissingInflatedId", "SetTextI18n"})
+    @SuppressLint({"MissingInflatedId", "SetTextI18n", "UnspecifiedRegisterReceiverFlag"})
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -61,6 +70,16 @@ public class MainActivity extends AppCompatActivity {
             return insets;
         });
         requestNotificationPermission();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            registerReceiver(closeReceiver,
+                    new IntentFilter("com.example.angelic_music.closeApp"),
+                    Context.RECEIVER_NOT_EXPORTED);
+        } else {
+            // Для старых версий без флага
+            registerReceiver(closeReceiver,
+                    new IntentFilter("com.example.angelic_music.closeApp"));
+        }
+
         ImageButton mus = findViewById(R.id.imageButton_music);
         ImageButton mus_play = findViewById(R.id.imageButton_play_pause);
         ImageButton close = findViewById(R.id.imageButton_closeApp);
@@ -137,6 +156,7 @@ public class MainActivity extends AppCompatActivity {
                 updateCurrentTime();
             }
         };
+
 
         loadTrackList();
 
@@ -292,6 +312,7 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onDestroy() {
+        unregisterReceiver(closeReceiver);
         super.onDestroy();
         if (handler != null) {
             handler.removeCallbacks(updateTimeRunnable);
