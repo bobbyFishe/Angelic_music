@@ -18,6 +18,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.SeekBar;
@@ -41,6 +42,7 @@ import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity {
     private MediaPlayer mediaPlayer;
+    ImageButton mus_play;
     private final List<String> trackList = new ArrayList<>();
     private String selectedTrack = "";
     private String currentPlayingTrack = "";
@@ -51,10 +53,29 @@ public class MainActivity extends AppCompatActivity {
     private SeekBar bar;
     private int currentTrackIndex = 0;
     private static final int NOTIFICATION_PERMISSION_CODE = 101;
-    private BroadcastReceiver closeReceiver = new BroadcastReceiver() {
+    private BroadcastReceiver musicReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            finishAffinity();
+            String action = intent.getAction();
+            if(action != null) {
+                if(action.equals("com.example.angelic_music.closeApp")) {
+                    showQuickToast("Выхожу");
+                    try {
+                        stopService(new Intent(MainActivity.this, MusicService.class));
+                    } catch (Exception ignored) {
+                    }
+                    finishAffinity();
+                } else if (action.equals("com.example.angelic_music.nextTrack")) {
+                    playNextTrack();
+                } else if (action.equals("com.example.angelic_music.prevTrack")) {
+                    playPrevTrack();
+                } else if (action.equals("com.example.angelic_music.playPause")) {
+                    boolean isPlayingFromService = intent.getBooleanExtra("is_playing", false);
+                    togglePlayPause();
+                }
+            }
+
+
         }
     };
 
@@ -70,18 +91,20 @@ public class MainActivity extends AppCompatActivity {
             return insets;
         });
         requestNotificationPermission();
+        IntentFilter filter = new IntentFilter();
+        filter.addAction("com.example.angelic_music.closeApp");
+        filter.addAction("com.example.angelic_music.nextTrack");
+        filter.addAction("com.example.angelic_music.prevTrack");
+        filter.addAction("com.example.angelic_music.playPause");
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            registerReceiver(closeReceiver,
-                    new IntentFilter("com.example.angelic_music.closeApp"),
-                    Context.RECEIVER_NOT_EXPORTED);
+            registerReceiver(musicReceiver, filter, Context.RECEIVER_NOT_EXPORTED);
         } else {
             // Для старых версий без флага
-            registerReceiver(closeReceiver,
-                    new IntentFilter("com.example.angelic_music.closeApp"));
+            registerReceiver(musicReceiver, filter);
         }
 
         ImageButton mus = findViewById(R.id.imageButton_music);
-        ImageButton mus_play = findViewById(R.id.imageButton_play_pause);
+        mus_play = findViewById(R.id.imageButton_play_pause);
         ImageButton close = findViewById(R.id.imageButton_closeApp);
         ImageButton track_prev = findViewById(R.id.imageButton_trackPrev);
         ImageButton track_next = findViewById(R.id.imageButton_track_next);
@@ -205,48 +228,14 @@ public class MainActivity extends AppCompatActivity {
                 bar.setProgress(0);
                 bar.setMax(0);
                 bar.setEnabled(false);
+                updateMusicService("", false);
                 showQuickToast("Остановил");
                 mus_play.setImageResource(android.R.drawable.ic_media_play);
             }
         });
 
         mus_play.setOnClickListener(view -> {
-            if(!mediaPlayer.isPlaying()) {
-                mus_play.setImageResource(android.R.drawable.ic_media_pause);
-                if(!currentPlayingTrack.isEmpty()) {
-                    mediaPlayer.start();
-                    updateCurrentTime();
-                    showQuickToast("Продолжил");
-                } else {
-                    try {
-                        String mes = "";
-                        if (selectedTrack.isEmpty()) {
-                            selectedTrack = trackList.get(0);
-                            mes = "Запустил " + selectedTrack;
-                        }
-                        String path = "audio/" + selectedTrack;
-                        mediaPlayer.setDataSource(getAssets().openFd(path));
-                        mediaPlayer.prepare();
-                        mediaPlayer.start();
-                        bar.setEnabled(true);
-                        currentPlayingTrack = selectedTrack;
-                        updateMusicService(currentPlayingTrack);
-                        name_track.setText(currentPlayingTrack);
-                        fullTime.setText(formatTime(mediaPlayer.getDuration()));
-                        bar.setMax(mediaPlayer.getDuration());
-                        currentTime.setText("00:00");
-                        handler.post(updateTimeRunnable);
-                        showQuickToast(mes.isEmpty() ? "Перезапустил" : mes);
-                    } catch (IOException e) {
-                        Toast.makeText(this, "Ошибка загрузки: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                    }
-                }
-            } else {
-                mediaPlayer.pause();
-                handler.removeCallbacks(updateTimeRunnable);
-                showQuickToast("Пауза");
-                mus_play.setImageResource(android.R.drawable.ic_media_play);
-            }
+            togglePlayPause();
         });
 
     }
@@ -295,7 +284,7 @@ public class MainActivity extends AppCompatActivity {
             bar.setEnabled(true);
 
             currentPlayingTrack = trackName;
-            updateMusicService(trackName);
+            updateMusicService(trackName, true);
             currentTrackIndex = trackList.indexOf(trackName);
             name_track.setText(currentPlayingTrack);
             int duration = mediaPlayer.getDuration();
@@ -312,7 +301,7 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onDestroy() {
-        unregisterReceiver(closeReceiver);
+        unregisterReceiver(musicReceiver);
         super.onDestroy();
         if (handler != null) {
             handler.removeCallbacks(updateTimeRunnable);
@@ -393,7 +382,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void showFirstDialog() {
-        new AlertDialog.Builder(MainActivity.this)
+        AlertDialog d = new AlertDialog.Builder(MainActivity.this)
                 .setTitle("Подтверждение")
                 .setMessage("Хотите выйти?")
                 .setCancelable(false)
@@ -418,9 +407,13 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void updateMusicService(String trackName) {
+    private void updateMusicService(String trackName,  boolean isPlaying) {
+        if (currentPlayingTrack.isEmpty() && !trackName.isEmpty()) {
+            currentPlayingTrack = trackName;
+        }
         Intent serviceIntent = new Intent(this, MusicService.class);
         serviceIntent.putExtra("track_name", trackName);
+        serviceIntent.putExtra("is_playing", isPlaying);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             startForegroundService(serviceIntent);
         } else {
@@ -432,5 +425,46 @@ public class MainActivity extends AppCompatActivity {
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
         setIntent(intent);
+    }
+
+    private void togglePlayPause() {
+        if(!mediaPlayer.isPlaying()) {
+            mus_play.setImageResource(android.R.drawable.ic_media_pause);
+            if(!currentPlayingTrack.isEmpty()) {
+                mediaPlayer.start();
+                updateCurrentTime();
+                updateMusicService(currentPlayingTrack, true);
+                showQuickToast("Продолжил");
+            } else {
+                try {
+                    String mes = "";
+                    if (selectedTrack.isEmpty()) {
+                        selectedTrack = trackList.get(0);
+                        mes = "Запустил " + selectedTrack;
+                    }
+                    String path = "audio/" + selectedTrack;
+                    mediaPlayer.setDataSource(getAssets().openFd(path));
+                    mediaPlayer.prepare();
+                    mediaPlayer.start();
+                    bar.setEnabled(true);
+                    currentPlayingTrack = selectedTrack;
+                    updateMusicService(currentPlayingTrack, true);
+                    name_track.setText(currentPlayingTrack);
+                    fullTime.setText(formatTime(mediaPlayer.getDuration()));
+                    bar.setMax(mediaPlayer.getDuration());
+                    currentTime.setText("00:00");
+                    handler.post(updateTimeRunnable);
+                    showQuickToast(mes.isEmpty() ? "Перезапустил" : mes);
+                } catch (IOException e) {
+                    Toast.makeText(this, "Ошибка загрузки: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                }
+            }
+        } else {
+            mediaPlayer.pause();
+            handler.removeCallbacks(updateTimeRunnable);
+            updateMusicService(currentPlayingTrack, false);
+            showQuickToast("Пауза");
+            mus_play.setImageResource(android.R.drawable.ic_media_play);
+        }
     }
 }
